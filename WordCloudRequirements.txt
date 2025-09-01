@@ -1,6 +1,0 @@
-streamlit
-pandas
-wordcloud
-matplotlib
-openpyxl
-numpy
