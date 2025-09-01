@@ -24,7 +24,7 @@ def check_password():
 
 # --- 1. SETUP AND CONFIGURATION ---
 STOPWORDS = [
-    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', "can't", 'cannot', 'com', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', 'don', "don't", 'down', 'during', 'each', 'else', 'ever', 'etc', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'http', 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', 'just', 'k', "let's", 'like', 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ourselves', 'out', 'over', 'own', 'r', 'same', 'shall', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'whats', 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'www', 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves', 'helps', 'feel', 'canary', 'wharf', 'plus', 'know', 'also', 'keeps', 'make', 'let'
+    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', "can't", 'cannot', 'com', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', 'don', "don't", 'down', 'during', 'each', 'else', 'ever', 'etc', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'http', 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', 'just', 'k', "let's", 'like', 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'r', 'same', 'shall', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'whats', 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'www', 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves', 'helps', 'feel', 'canary', 'wharf', 'plus', 'know', 'also', 'keeps', 'make', 'let'
 ]
 
 SECTOR_MAPPING = {
@@ -57,7 +57,8 @@ def clean_text(text):
 def generate_wordcloud_image(text):
     if not text or text.isspace(): return None
     wordcloud = WordCloud(width=1600, height=800, background_color='white', colormap='viridis', collocations=False, stopwords=STOPWORDS).generate(text)
-    fig, ax = plt.subplots(figsize=(12, 6)); ax.imshow(wordcloud, interpolation='bilinear'); ax.axis("off"); fig.patch.set_facecolor('white')
+    # Reduced figsize to make the plot shorter and fit better on screen
+    fig, ax = plt.subplots(figsize=(10, 5)); ax.imshow(wordcloud, interpolation='bilinear'); ax.axis("off"); fig.patch.set_facecolor('white')
     return fig
 
 def generate_color_css(df):
@@ -80,24 +81,42 @@ if check_password():
     st.markdown("""
     <style>
         /* Main Layout & Whitespace Reduction */
-        .block-container { padding-top: 2rem; padding-bottom: 1rem; padding-left: 2rem; padding-right: 2rem; }
+        .block-container {
+            padding-top: 1rem; /* SQUASH UP: Reduced top padding */
+            padding-bottom: 1rem;
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+        }
         [data-testid="stSidebar"] { background-color: #F8F9FA; }
-        div[data-testid="stHorizontalBlock"] { border-bottom: 1px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
         
-        /* Compact File Uploader */
-        [data-testid="stFileUploader"] { padding: 0; }
-        [data-testid="stFileUploader"] section { padding: 1rem; }
-        [data-testid="stFileUploader"] small { font-size: 0.8rem; }
-        
-        /* Tighter Leaderboard Spacing */
-        div[data-testid="stVerticalBlock"] div.stButton { margin-bottom: 4px; }
+        /* Compact File Uploader in top right */
+        div[data-testid="stFileUploader"] {
+            padding: 0;
+        }
+        div[data-testid="stFileUploader"] section {
+            padding: 1rem;
+            border-style: dashed;
+            border-color: #d3d3d3;
+        }
+        div[data-testid="stFileUploader"] small {
+            font-size: 0.8rem;
+        }
+
+        /* TIGHTER LEADERBOARD: Reduce vertical spacing to create a dense list */
+        div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] {
+            gap: 0.25rem !important; /* This is the key change for tighter spacing */
+        }
         .stButton>button {
             background-color: #FFFFFF; color: #4A4A4A; border: 1px solid #E0E0E0;
-            border-radius: 8px; padding: 8px 12px; width: 100%;
-            text-align: left; font-weight: 500; transition: all 0.2s ease-in-out;
+            border-radius: 8px; padding: 6px 12px; /* Reduced button padding */
+            width: 100%; text-align: left; font-weight: 500;
+            transition: all 0.2s ease-in-out;
         }
         .stButton>button:hover { border-color: #6200EE; color: #6200EE; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .leaderboard-count { font-size: 1.0em; font-weight: 600; color: #2E2E2E; text-align: right; padding-top: 8px; }
+        .leaderboard-count {
+            font-size: 1.0em; font-weight: 600; color: #2E2E2E;
+            text-align: right; padding-top: 6px; /* Match button padding */
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -112,19 +131,27 @@ if check_password():
             st.session_state['default_sectors'] = []
             st.session_state['default_companies'] = []
             st.rerun()
-        st.markdown("---", unsafe_allow_html=True) # Use markdown for a subtle line
+        st.markdown("<hr style='margin-top:0.5rem; margin-bottom:0.5rem;'>", unsafe_allow_html=True)
         st.subheader("Response Leaderboard")
         st.caption("Click a company name to filter.")
+        # Leaderboard content will be added later after file upload
 
     # --- Main Page Layout ---
-    header_col1, header_col2 = st.columns([2, 1])
-    with header_col1:
-        st.title("Interactive Response Dashboard")
-    with header_col2:
-        uploaded_file = st.file_uploader("Upload Response File", type=["xlsx"], label_visibility="collapsed")
+    # Create an empty container at the top for the uploader
+    uploader_container = st.container()
     
-    if uploaded_file:
-        df = pd.read_excel(uploaded_file, na_values=['None'])
+    # Check for uploaded file first
+    uploaded_file = st.session_state.get('uploaded_file', None)
+    if not uploaded_file:
+        with uploader_container:
+            _, uploader_col = st.columns([2, 1]) # Pushes uploader to the right
+            uploaded_file = uploader_col.file_uploader("Upload Response File", type=["xlsx"], label_visibility="collapsed")
+            if uploaded_file:
+                st.session_state['uploaded_file'] = uploaded_file
+                st.rerun()
+
+    if 'uploaded_file' in st.session_state and st.session_state['uploaded_file'] is not None:
+        df = pd.read_excel(st.session_state['uploaded_file'], na_values=['None'])
         df['display_response'] = df['Response'].astype(str).str.replace('â€™', "'").str.replace('â€œ', '"').str.replace('â€', '"')
         df['Sector'] = df['Company'].map(SECTOR_MAPPING).fillna('Other')
         df['cleaned_response'] = df['Response'].apply(clean_text)
