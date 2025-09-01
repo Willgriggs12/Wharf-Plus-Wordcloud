@@ -62,44 +62,32 @@ if check_password():
     <style>
         /* Sidebar Styling */
         [data-testid="stSidebar"] {
-            background-color: #F8F9FA; /* A light, clean grey */
+            background-color: #F8F9FA;
         }
-
-        /* Leaderboard Button Styling - THIS IS THE KEY PART */
+        /* Leaderboard Button Styling */
         .stButton>button {
-            background-color: #FFFFFF;      /* White background */
-            color: #4A4A4A;                 /* Professional dark grey text */
-            border: 1px solid #E0E0E0;      /* Subtle light grey border */
-            border-radius: 8px;             /* Rounded corners */
-            padding-top: 10px;              /* Vertical padding */
-            padding-bottom: 10px;           /* Vertical padding */
-            width: 100%;                    /* Make all buttons the same width */
-            text-align: left;               /* Align company name to the left */
-            font-weight: 500;               /* Slightly bolder font */
-            transition: all 0.2s ease-in-out; /* Smooth hover effect */
+            background-color: #FFFFFF; color: #4A4A4A; border: 1px solid #E0E0E0;
+            border-radius: 8px; padding-top: 10px; padding-bottom: 10px;
+            width: 100%; text-align: left; font-weight: 500;
+            transition: all 0.2s ease-in-out;
         }
         .stButton>button:hover {
-            border-color: #6200EE;          /* A professional purple for hover */
-            color: #6200EE;                 /* Text color changes on hover */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Add a subtle shadow on hover */
+            border-color: #6200EE; color: #6200EE;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .stButton>button:focus {
             outline: none !important;
-            box-shadow: 0 0 0 2px #D6BFFF !important; /* Focus ring for accessibility */
+            box-shadow: 0 0 0 2px #D6BFFF !important;
         }
-
         /* Styling for the response count number */
         .leaderboard-count {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #2E2E2E;
-            text-align: right;
-            padding-top: 10px; /* Align number with button text */
+            font-size: 1.1em; font-weight: bold; color: #2E2E2E;
+            text-align: right; padding-top: 10px;
         }
     </style>
     """, unsafe_allow_html=True)
 
-    st.title("Word Cloud Generator")
+    st.title("Interactive Response Word Cloud Generator")
     uploaded_file = st.file_uploader("Upload your Excel file to begin", type=["xlsx"])
 
     if uploaded_file:
@@ -111,18 +99,18 @@ if check_password():
         st.sidebar.title("Filters")
         st.sidebar.markdown("---")
 
-        # --- Sidebar: Multi-Select Filters ---
+        # --- Sidebar: Multi-Select Filters (Corrected) ---
         sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
-        selected_sectors = st.multoselect("Filter by Sector:", sector_list, key='sector_filter')
+        selected_sectors = st.multiselect("Filter by Sector:", sector_list, key='sector_filter')
 
         if selected_sectors: company_df = df[df['Sector'].isin(selected_sectors)]
         else: company_df = df
         
         company_list = sorted(company_df['Company'].dropna().unique().tolist())
-        selected_companies = st.multoselect("Filter by Company:", company_list, key='company_filter')
+        selected_companies = st.multiselect("Filter by Company:", company_list, key='company_filter')
         st.sidebar.markdown("---")
         
-        # --- Sidebar: Interactive Leaderboard (with new UI) ---
+        # --- Sidebar: Interactive Leaderboard ---
         st.sidebar.subheader("Response Leaderboard")
         st.sidebar.caption("Click a company name to filter the dashboard.")
         leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
@@ -133,7 +121,6 @@ if check_password():
             for row in company_counts.itertuples():
                 cols = st.sidebar.columns([4, 1])
                 button_clicked = cols[0].button(row.Company, key=f"btn_{row.Company}")
-                # Use markdown with custom class for the count
                 cols[1].markdown(f"<div class='leaderboard-count'>{row.Responses}</div>", unsafe_allow_html=True)
                 
                 if button_clicked:
@@ -141,7 +128,7 @@ if check_password():
                     st.session_state.company_filter = [row.Company]
                     st.rerun()
 
-        # --- Main Panel: Filtering & Display (No changes here) ---
+        # --- Main Panel: Filtering & Display ---
         filtered_df = df.copy()
         title_parts = []
         if selected_sectors:
