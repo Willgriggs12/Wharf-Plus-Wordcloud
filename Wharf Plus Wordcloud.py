@@ -24,7 +24,7 @@ def check_password():
 
 # --- 1. SETUP AND CONFIGURATION ---
 STOPWORDS = [
-    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', "can't", 'cannot', 'com', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', 'don', "don't", 'down', 'during', 'each', 'else', 'ever', 'etc', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'http', 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', 'just', 'k', "let's", 'like', 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ourselves', 'out', 'over', 'own', 'r', 'same', 'shall', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'whats', 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'www', 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves', 'helps', 'feel', 'canary', 'wharf', 'plus', 'know', 'also', 'keeps', 'make', 'let'
+    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', "can't", 'cannot', 'com', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', 'don', "don't", 'down', 'during', 'each', 'else', 'ever', 'etc', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'http', 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', 'just', 'k', "let's", 'like', 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'r', 'same', 'shall', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'whats', 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'www', 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves', 'helps', 'feel', 'canary', 'wharf', 'plus', 'know', 'also', 'keeps', 'make', 'let'
 ]
 
 SECTOR_MAPPING = {
@@ -60,72 +60,72 @@ def generate_wordcloud_image(text):
     fig, ax = plt.subplots(figsize=(12, 6)); ax.imshow(wordcloud, interpolation='bilinear'); ax.axis("off"); fig.patch.set_facecolor('white')
     return fig
 
+def generate_color_css(df):
+    """Dynamically generates CSS for coloring multiselect tags."""
+    css = "<style>"
+    # Sector colors
+    for sector, color in SECTOR_COLORS.items():
+        css += f'''
+            div[data-baseweb="tag"] span[title="{sector}"] {{
+                background-color: {color} !important;
+                color: white !important; /* Make text readable on dark backgrounds */
+            }}
+        '''
+    # Company colors based on their sector
+    for company, sector in SECTOR_MAPPING.items():
+        if company and sector in SECTOR_COLORS:
+            color = SECTOR_COLORS[sector]
+            css += f'''
+                div[data-baseweb="tag"] span[title="{company}"] {{
+                    background-color: {color} !important;
+                    color: white !important;
+                }}
+            '''
+    css += "</style>"
+    return css
+
 # --- STREAMLIT APPLICATION ---
 if check_password():
     st.set_page_config(layout="wide", page_title="Response Dashboard")
 
-    # --- Custom CSS for Professional UI ---
+    # --- Static CSS for general layout improvements ---
     st.markdown("""
     <style>
-        /* Reduce top padding of the main page */
-        .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-        /* Sidebar Styling */
-        [data-testid="stSidebar"] {
-            background-color: #F8F9FA;
-            padding-top: 1rem;
-        }
-        /* Leaderboard Button Styling */
+        .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+        [data-testid="stSidebar"] { background-color: #F8F9FA; }
         .stButton>button {
             background-color: #FFFFFF; color: #4A4A4A; border: 1px solid #E0E0E0;
             border-radius: 8px; padding-top: 10px; padding-bottom: 10px;
             width: 100%; text-align: left; font-weight: 500;
             transition: all 0.2s ease-in-out;
         }
-        .stButton>button:hover {
-            border-color: #6200EE; color: #6200EE; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        /* Styling for the response count number */
-        .leaderboard-count {
-            font-size: 1.1em; font-weight: bold; color: #2E2E2E;
-            text-align: right; padding-top: 10px;
-        }
-        /* Sector Legend Styling */
-        .legend-container {
-            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
-        }
-        .legend-item {
-            display: flex; align-items: center; font-size: 0.9em;
-        }
-        .legend-color-box {
-            width: 12px; height: 12px; border-radius: 3px; margin-right: 6px;
-        }
+        .stButton>button:hover { border-color: #6200EE; color: #6200EE; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .leaderboard-count { font-size: 1.1em; font-weight: bold; color: #2E2E2E; text-align: right; padding-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
-    # Initialize session state for filter defaults
+    # Initialize session state
     if 'default_sectors' not in st.session_state: st.session_state['default_sectors'] = []
     if 'default_companies' not in st.session_state: st.session_state['default_companies'] = []
 
-    # --- Sidebar Controls ---
+    # --- Sidebar ---
     with st.sidebar:
         st.title("Controls")
         st.markdown("---")
-        uploaded_file = st.file_uploader("Upload Response File", type=["xlsx"])
-        
         if st.button("Clear All Filters"):
             st.session_state['default_sectors'] = []
             st.session_state['default_companies'] = []
             st.rerun()
-
         st.markdown("---")
         st.subheader("Response Leaderboard")
         st.caption("Click a company name to filter.")
-    
-    # --- Main Page ---
-    st.title("Interactive Response Word Cloud")
+
+    # --- Main Page Layout ---
+    header_col1, header_col2 = st.columns([3, 1])
+    with header_col1:
+        st.title("Interactive Response Dashboard")
+    with header_col2:
+        uploaded_file = st.file_uploader("Upload Response File", type=["xlsx"], label_visibility="collapsed")
     
     if uploaded_file:
         df = pd.read_excel(uploaded_file, na_values=['None'])
@@ -133,14 +133,11 @@ if check_password():
         df['Sector'] = df['Company'].map(SECTOR_MAPPING).fillna('Other')
         df['cleaned_response'] = df['Response'].apply(clean_text)
 
-        # --- Display Color Legend ---
-        legend_html = '<div class="legend-container">'
-        for sector, color in SECTOR_COLORS.items():
-            legend_html += f'<div class="legend-item"><div class="legend-color-box" style="background-color:{color};"></div>{sector}</div>'
-        legend_html += '</div>'
-        st.markdown(legend_html, unsafe_allow_html=True)
+        # Inject the dynamically generated CSS for colors
+        st.markdown(generate_color_css(df), unsafe_allow_html=True)
 
         # --- Main Page Filter Columns ---
+        st.markdown("---")
         filter_col1, filter_col2 = st.columns(2)
         
         sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
@@ -152,13 +149,12 @@ if check_password():
         company_list = sorted(company_df['Company'].dropna().unique().tolist())
         selected_companies = filter_col2.multiselect("Filter by Company:", company_list, default=st.session_state['default_companies'])
 
-        # --- Update Leaderboard in Sidebar ---
+        # --- Update Leaderboard in Sidebar (now that df exists) ---
         with st.sidebar:
             leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
             if not leaderboard_df.empty:
                 company_counts = leaderboard_df['Company'].value_counts().reset_index()
                 company_counts.columns = ['Company', 'Responses']
-                
                 for row in company_counts.itertuples():
                     cols = st.columns([4, 1])
                     if cols[0].button(row.Company, key=f"btn_{row.Company}"):
@@ -167,49 +163,33 @@ if check_password():
                         st.rerun()
                     cols[1].markdown(f"<div class='leaderboard-count'>{row.Responses}</div>", unsafe_allow_html=True)
 
-        # --- Filtering Logic and Word Cloud Display ---
+        # --- Word Cloud Display ---
         filtered_df = df.copy()
-        title_parts = []
-        if selected_sectors:
-            filtered_df = filtered_df[filtered_df['Sector'].isin(selected_sectors)]
-            title_parts.append(f"Sectors: {', '.join(selected_sectors)}")
-        if selected_companies:
-            filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
-            title_parts.append(f"Companies: {', '.join(selected_companies)}")
+        if selected_sectors: filtered_df = filtered_df[filtered_df['Sector'].isin(selected_sectors)]
+        if selected_companies: filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
         
+        st.markdown("---")
         full_text = " ".join(response for response in filtered_df['cleaned_response'].dropna())
         wordcloud_fig = generate_wordcloud_image(full_text)
         
         if wordcloud_fig:
             st.pyplot(wordcloud_fig, use_container_width=True)
             
-            # --- Download Button Logic ---
             buf = io.BytesIO()
             wordcloud_fig.savefig(buf, format="png", bbox_inches="tight")
-            
-            # Create dynamic filename
             filename_parts = []
             if selected_sectors: filename_parts.append(f"Sectors_{'-'.join(selected_sectors)}")
             if selected_companies: filename_parts.append(f"Companies_{'-'.join(selected_companies)}")
-            if not filename_parts: download_filename = "WordCloud_All-Responses.png"
-            else: download_filename = f"WordCloud_{'_'.join(filename_parts)}.png"
-            
-            # Sanitize filename
+            download_filename = f"WordCloud_{'_'.join(filename_parts) or 'All-Responses'}.png"
             download_filename = re.sub(r'[\s/&]', '-', download_filename)
 
-            st.download_button(
-                label="📥 Download Visual",
-                data=buf,
-                file_name=download_filename,
-                mime="image/png"
-            )
+            st.download_button(label="📥 Download Visual", data=buf, file_name=download_filename, mime="image/png")
         else:
             st.warning("No text available to generate a word cloud for the selected filter.")
         
-        # --- Raw Data Expander ---
         with st.expander(f"View the {len(filtered_df)} Raw Response(s)"):
             display_df = filtered_df[['display_response', 'Company']].rename(columns={'display_response': 'Original Response', 'Company': 'Company Name'})
             st.dataframe(display_df, hide_index=True, use_container_width=True)
     
     else:
-        st.info("Please upload an Excel file using the control panel on the left to begin analysis.")
+        st.info("Upload an Excel file to begin analysis.")
