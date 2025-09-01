@@ -57,7 +57,6 @@ def clean_text(text):
 def generate_wordcloud_image(text):
     if not text or text.isspace(): return None
     wordcloud = WordCloud(width=1600, height=800, background_color='white', colormap='viridis', collocations=False, stopwords=STOPWORDS).generate(text)
-    # Reduced figsize to make the plot shorter and fit better on screen
     fig, ax = plt.subplots(figsize=(10, 5)); ax.imshow(wordcloud, interpolation='bilinear'); ax.axis("off"); fig.patch.set_facecolor('white')
     return fig
 
@@ -82,40 +81,34 @@ if check_password():
     <style>
         /* Main Layout & Whitespace Reduction */
         .block-container {
-            padding-top: 1rem; /* SQUASH UP: Reduced top padding */
+            padding-top: 1rem;
             padding-bottom: 1rem;
             padding-left: 2.5rem;
             padding-right: 2.5rem;
         }
+        /* Elevate Sidebar Content */
+        [data-testid="stSidebarUserContent"] {
+            padding-top: 1rem;
+        }
         [data-testid="stSidebar"] { background-color: #F8F9FA; }
         
-        /* Compact File Uploader in top right */
-        div[data-testid="stFileUploader"] {
-            padding: 0;
-        }
-        div[data-testid="stFileUploader"] section {
-            padding: 1rem;
-            border-style: dashed;
-            border-color: #d3d3d3;
-        }
-        div[data-testid="stFileUploader"] small {
-            font-size: 0.8rem;
-        }
-
-        /* TIGHTER LEADERBOARD: Reduce vertical spacing to create a dense list */
-        div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] {
-            gap: 0.25rem !important; /* This is the key change for tighter spacing */
-        }
+        /* Compact File Uploader */
+        [data-testid="stFileUploader"] { padding: 0; }
+        [data-testid="stFileUploader"] section { padding: 1rem; border-style: dashed; border-color: #d3d3d3; }
+        [data-testid="stFileUploader"] small { font-size: 0.8rem; }
+        
+        /* Tighter Leaderboard Spacing */
+        div[data-testid="stVerticalBlock"] div.stButton { margin-bottom: 4px; }
         .stButton>button {
             background-color: #FFFFFF; color: #4A4A4A; border: 1px solid #E0E0E0;
-            border-radius: 8px; padding: 6px 12px; /* Reduced button padding */
+            border-radius: 8px; padding: 6px 12px;
             width: 100%; text-align: left; font-weight: 500;
             transition: all 0.2s ease-in-out;
         }
         .stButton>button:hover { border-color: #6200EE; color: #6200EE; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .leaderboard-count {
             font-size: 1.0em; font-weight: 600; color: #2E2E2E;
-            text-align: right; padding-top: 6px; /* Match button padding */
+            text-align: right; padding-top: 6px;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -134,17 +127,15 @@ if check_password():
         st.markdown("<hr style='margin-top:0.5rem; margin-bottom:0.5rem;'>", unsafe_allow_html=True)
         st.subheader("Response Leaderboard")
         st.caption("Click a company name to filter.")
-        # Leaderboard content will be added later after file upload
 
     # --- Main Page Layout ---
-    # Create an empty container at the top for the uploader
     uploader_container = st.container()
     
     # Check for uploaded file first
     uploaded_file = st.session_state.get('uploaded_file', None)
     if not uploaded_file:
         with uploader_container:
-            _, uploader_col = st.columns([2, 1]) # Pushes uploader to the right
+            _, uploader_col = st.columns([2, 1])
             uploaded_file = uploader_col.file_uploader("Upload Response File", type=["xlsx"], label_visibility="collapsed")
             if uploaded_file:
                 st.session_state['uploaded_file'] = uploaded_file
@@ -158,16 +149,18 @@ if check_password():
 
         st.markdown(generate_color_css(df), unsafe_allow_html=True)
 
-        # --- Main Page Filter Columns ---
+        # --- Main Page Filter Columns with Manual Labels ---
         filter_col1, filter_col2 = st.columns(2)
+        filter_col1.caption("FILTER BY SECTOR")
         sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
-        selected_sectors = filter_col1.multiselect("Filter by Sector:", sector_list, default=st.session_state['default_sectors'])
+        selected_sectors = filter_col1.multiselect("Filter by Sector:", sector_list, default=st.session_state['default_sectors'], label_visibility="collapsed")
 
+        filter_col2.caption("FILTER BY COMPANY")
         if selected_sectors: company_df = df[df['Sector'].isin(selected_sectors)]
         else: company_df = df
         
         company_list = sorted(company_df['Company'].dropna().unique().tolist())
-        selected_companies = filter_col2.multiselect("Filter by Company:", company_list, default=st.session_state['default_companies'])
+        selected_companies = filter_col2.multiselect("Filter by Company:", company_list, default=st.session_state['default_companies'], label_visibility="collapsed")
 
         # --- Update Leaderboard in Sidebar ---
         with st.sidebar:
