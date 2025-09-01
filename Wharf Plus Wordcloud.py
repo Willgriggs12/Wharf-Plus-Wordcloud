@@ -34,7 +34,7 @@ SECTOR_MAPPING = {
     'KPMG': 'Professional', 'Ernst Young (EY)': 'Professional', 'Herbert Smith Freehills Kramer': 'Professional',
     'General Optical Council': 'Public Sector / Regulatory Body / Charity', 'WaterAid': 'Public Sector / Regulatory Body / Charity', 'UCL': 'Public Sector / Regulatory Body / Charity', 'Transport for London': 'Public Sector / Regulatory Body / Charity',
     'MDU': 'Life Sciences & Healthcare', 'Hvivo Plc': 'Life Sciences & Healthcare', 'Bupa Health and Dental Centre': 'Life Sciences & Healthcare',
-    'Waitrose & Partners': 'Other', 'Canary Wharf Group': 'Other', 'Westferry Circus Property Ltd': 'Other', 'Paul Smith': 'Other', 'Ocean Network Express': 'Other', 'Blacklock': 'Other', 'Third Space': 'Other', 'Visitor': 'Other', '1. Company not listed': 'Other', 'None': 'Other', None: 'Other', np.nan: 'Other'
+    'Waitrose & Partners': 'Other', 'Canary Wharf Group': 'Other', 'Westry Circus Property Ltd': 'Other', 'Paul Smith': 'Other', 'Ocean Network Express': 'Other', 'Blacklock': 'Other', 'Third Space': 'Other', 'Visitor': 'Other', '1. Company not listed': 'Other', 'None': 'Other', None: 'Other', np.nan: 'Other'
 }
 
 def clean_text(text):
@@ -56,13 +56,11 @@ def generate_wordcloud_image(text):
 # --- STREAMLIT APPLICATION ---
 if check_password():
     st.set_page_config(layout="wide")
-    
+
     # --- UI Enhancement: Custom CSS Injection ---
     st.markdown("""
     <style>
-        /* Sidebar Styling */
         [data-testid="stSidebar"] { background-color: #F8F9FA; }
-        /* Leaderboard Button Styling */
         .stButton>button {
             background-color: #FFFFFF; color: #4A4A4A; border: 1px solid #E0E0E0;
             border-radius: 8px; padding-top: 10px; padding-bottom: 10px;
@@ -70,13 +68,11 @@ if check_password():
             transition: all 0.2s ease-in-out;
         }
         .stButton>button:hover {
-            border-color: #6200EE; color: #6200EE;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-color: #6200EE; color: #6200EE; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .stButton>button:focus {
             outline: none !important; box-shadow: 0 0 0 2px #D6BFFF !important;
         }
-        /* Styling for the response count number */
         .leaderboard-count {
             font-size: 1.1em; font-weight: bold; color: #2E2E2E;
             text-align: right; padding-top: 10px;
@@ -87,6 +83,12 @@ if check_password():
     st.title("Interactive Response Word Cloud Generator")
     uploaded_file = st.file_uploader("Upload your Excel file to begin", type=["xlsx"])
 
+    # Initialize session state for filters if they don't exist
+    if 'default_sectors' not in st.session_state:
+        st.session_state['default_sectors'] = []
+    if 'default_companies' not in st.session_state:
+        st.session_state['default_companies'] = []
+
     if uploaded_file:
         df = pd.read_excel(uploaded_file, na_values=['None'])
         df['display_response'] = df['Response'].astype(str).str.replace('â€™', "'").str.replace('â€œ', '"').str.replace('â€', '"')
@@ -94,22 +96,26 @@ if check_password():
         df['cleaned_response'] = df['Response'].apply(clean_text)
 
         st.sidebar.title("Filters")
+        
+        if st.sidebar.button("Clear All Filters"):
+            st.session_state['default_sectors'] = []
+            st.session_state['default_companies'] = []
+            st.rerun()
+
         st.sidebar.markdown("---")
 
-        # --- CORRECT ORDER: Define multiselect widgets FIRST ---
         sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
-        selected_sectors = st.multiselect("Filter by Sector:", sector_list, key='sector_filter')
+        selected_sectors = st.sidebar.multiselect("Filter by Sector:", sector_list, default=st.session_state['default_sectors'])
 
         if selected_sectors: company_df = df[df['Sector'].isin(selected_sectors)]
         else: company_df = df
         
         company_list = sorted(company_df['Company'].dropna().unique().tolist())
-        selected_companies = st.multiselect("Filter by Company:", company_list, key='company_filter')
+        selected_companies = st.sidebar.multiselect("Filter by Company:", company_list, default=st.session_state['default_companies'])
         st.sidebar.markdown("---")
         
-        # --- THEN define the leaderboard that interacts with them ---
         st.sidebar.subheader("Response Leaderboard")
-        st.sidebar.caption("Click a company name to filter the dashboard.")
+        st.sidebar.caption("Click a company name to filter.")
         leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
         if not leaderboard_df.empty:
             company_counts = leaderboard_df['Company'].value_counts().reset_index()
@@ -121,11 +127,12 @@ if check_password():
                 cols[1].markdown(f"<div class='leaderboard-count'>{row.Responses}</div>", unsafe_allow_html=True)
                 
                 if button_clicked:
-                    st.session_state.sector_filter = [df.loc[df['Company'] == row.Company, 'Sector'].iloc[0]]
-                    st.session_state.company_filter = [row.Company]
+                    # Set the intermediate state variables and rerun
+                    st.session_state['default_sectors'] = [df.loc[df['Company'] == row.Company, 'Sector'].iloc[0]]
+                    st.session_state['default_companies'] = [row.Company]
                     st.rerun()
 
-        # --- Main Panel: Filtering & Display ---
+        # Filtering logic now uses the direct output of the multiselect widgets
         filtered_df = df.copy()
         title_parts = []
         if selected_sectors:
