@@ -24,7 +24,7 @@ def check_password():
 
 # --- 1. SETUP AND CONFIGURATION ---
 STOPWORDS = [
-    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', "can't", 'cannot', 'com', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', 'don', "don't", 'down', 'during', 'each', 'else', 'ever', 'etc', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'http', 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', 'just', 'k', "let's", 'like', 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'r', 'same', 'shall', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'whats', 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'www', 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves', 'helps', 'feel', 'canary', 'wharf', 'plus', 'know', 'also', 'keeps', 'make', 'let'
+    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', "can't", 'cannot', 'com', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', 'don', "don't", 'down', 'during', 'each', 'else', 'ever', 'etc', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'http', 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', 'just', 'k', "let's", 'like', 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ourselves', 'out', 'over', 'own', 'r', 'same', 'shall', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'whats', 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'www', 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves', 'helps', 'feel', 'canary', 'wharf', 'plus', 'know', 'also', 'keeps', 'make', 'let'
 ]
 
 SECTOR_MAPPING = {
@@ -63,24 +63,12 @@ def generate_wordcloud_image(text):
 def generate_color_css(df):
     """Dynamically generates CSS for coloring multiselect tags."""
     css = "<style>"
-    # Sector colors
     for sector, color in SECTOR_COLORS.items():
-        css += f'''
-            div[data-baseweb="tag"] span[title="{sector}"] {{
-                background-color: {color} !important;
-                color: white !important; /* Make text readable on dark backgrounds */
-            }}
-        '''
-    # Company colors based on their sector
+        css += f''' div[data-baseweb="tag"] span[title="{sector}"] {{ background-color: {color} !important; color: white !important; }} '''
     for company, sector in SECTOR_MAPPING.items():
         if company and sector in SECTOR_COLORS:
             color = SECTOR_COLORS[sector]
-            css += f'''
-                div[data-baseweb="tag"] span[title="{company}"] {{
-                    background-color: {color} !important;
-                    color: white !important;
-                }}
-            '''
+            css += f''' div[data-baseweb="tag"] span[title="{company}"] {{ background-color: {color} !important; color: white !important; }} '''
     css += "</style>"
     return css
 
@@ -88,19 +76,28 @@ def generate_color_css(df):
 if check_password():
     st.set_page_config(layout="wide", page_title="Response Dashboard")
 
-    # --- Static CSS for general layout improvements ---
+    # --- UI Polish: Custom CSS Injection ---
     st.markdown("""
     <style>
-        .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+        /* Main Layout & Whitespace Reduction */
+        .block-container { padding-top: 2rem; padding-bottom: 1rem; padding-left: 2rem; padding-right: 2rem; }
         [data-testid="stSidebar"] { background-color: #F8F9FA; }
+        div[data-testid="stHorizontalBlock"] { border-bottom: 1px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* Compact File Uploader */
+        [data-testid="stFileUploader"] { padding: 0; }
+        [data-testid="stFileUploader"] section { padding: 1rem; }
+        [data-testid="stFileUploader"] small { font-size: 0.8rem; }
+        
+        /* Tighter Leaderboard Spacing */
+        div[data-testid="stVerticalBlock"] div.stButton { margin-bottom: 4px; }
         .stButton>button {
             background-color: #FFFFFF; color: #4A4A4A; border: 1px solid #E0E0E0;
-            border-radius: 8px; padding-top: 10px; padding-bottom: 10px;
-            width: 100%; text-align: left; font-weight: 500;
-            transition: all 0.2s ease-in-out;
+            border-radius: 8px; padding: 8px 12px; width: 100%;
+            text-align: left; font-weight: 500; transition: all 0.2s ease-in-out;
         }
         .stButton>button:hover { border-color: #6200EE; color: #6200EE; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .leaderboard-count { font-size: 1.1em; font-weight: bold; color: #2E2E2E; text-align: right; padding-top: 10px; }
+        .leaderboard-count { font-size: 1.0em; font-weight: 600; color: #2E2E2E; text-align: right; padding-top: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -111,17 +108,16 @@ if check_password():
     # --- Sidebar ---
     with st.sidebar:
         st.title("Controls")
-        st.markdown("---")
         if st.button("Clear All Filters"):
             st.session_state['default_sectors'] = []
             st.session_state['default_companies'] = []
             st.rerun()
-        st.markdown("---")
+        st.markdown("---", unsafe_allow_html=True) # Use markdown for a subtle line
         st.subheader("Response Leaderboard")
         st.caption("Click a company name to filter.")
 
     # --- Main Page Layout ---
-    header_col1, header_col2 = st.columns([3, 1])
+    header_col1, header_col2 = st.columns([2, 1])
     with header_col1:
         st.title("Interactive Response Dashboard")
     with header_col2:
@@ -133,13 +129,10 @@ if check_password():
         df['Sector'] = df['Company'].map(SECTOR_MAPPING).fillna('Other')
         df['cleaned_response'] = df['Response'].apply(clean_text)
 
-        # Inject the dynamically generated CSS for colors
         st.markdown(generate_color_css(df), unsafe_allow_html=True)
 
         # --- Main Page Filter Columns ---
-        st.markdown("---")
         filter_col1, filter_col2 = st.columns(2)
-        
         sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
         selected_sectors = filter_col1.multiselect("Filter by Sector:", sector_list, default=st.session_state['default_sectors'])
 
@@ -149,7 +142,7 @@ if check_password():
         company_list = sorted(company_df['Company'].dropna().unique().tolist())
         selected_companies = filter_col2.multiselect("Filter by Company:", company_list, default=st.session_state['default_companies'])
 
-        # --- Update Leaderboard in Sidebar (now that df exists) ---
+        # --- Update Leaderboard in Sidebar ---
         with st.sidebar:
             leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
             if not leaderboard_df.empty:
@@ -168,7 +161,6 @@ if check_password():
         if selected_sectors: filtered_df = filtered_df[filtered_df['Sector'].isin(selected_sectors)]
         if selected_companies: filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
         
-        st.markdown("---")
         full_text = " ".join(response for response in filtered_df['cleaned_response'].dropna())
         wordcloud_fig = generate_wordcloud_image(full_text)
         
@@ -181,7 +173,7 @@ if check_password():
             if selected_sectors: filename_parts.append(f"Sectors_{'-'.join(selected_sectors)}")
             if selected_companies: filename_parts.append(f"Companies_{'-'.join(selected_companies)}")
             download_filename = f"WordCloud_{'_'.join(filename_parts) or 'All-Responses'}.png"
-            download_filename = re.sub(r'[\s/&]', '-', download_filename)
+            download_filename = re.sub(r'[\\/*?:"<>|&\s]', '-', download_filename)
 
             st.download_button(label="📥 Download Visual", data=buf, file_name=download_filename, mime="image/png")
         else:
