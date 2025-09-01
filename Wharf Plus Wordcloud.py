@@ -61,9 +61,7 @@ if check_password():
     st.markdown("""
     <style>
         /* Sidebar Styling */
-        [data-testid="stSidebar"] {
-            background-color: #F8F9FA;
-        }
+        [data-testid="stSidebar"] { background-color: #F8F9FA; }
         /* Leaderboard Button Styling */
         .stButton>button {
             background-color: #FFFFFF; color: #4A4A4A; border: 1px solid #E0E0E0;
@@ -76,8 +74,7 @@ if check_password():
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .stButton>button:focus {
-            outline: none !important;
-            box-shadow: 0 0 0 2px #D6BFFF !important;
+            outline: none !important; box-shadow: 0 0 0 2px #D6BFFF !important;
         }
         /* Styling for the response count number */
         .leaderboard-count {
@@ -99,7 +96,7 @@ if check_password():
         st.sidebar.title("Filters")
         st.sidebar.markdown("---")
 
-        # --- Sidebar: Multi-Select Filters (Corrected) ---
+        # --- CORRECT ORDER: Define multiselect widgets FIRST ---
         sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
         selected_sectors = st.multiselect("Filter by Sector:", sector_list, key='sector_filter')
 
@@ -110,7 +107,7 @@ if check_password():
         selected_companies = st.multiselect("Filter by Company:", company_list, key='company_filter')
         st.sidebar.markdown("---")
         
-        # --- Sidebar: Interactive Leaderboard ---
+        # --- THEN define the leaderboard that interacts with them ---
         st.sidebar.subheader("Response Leaderboard")
         st.sidebar.caption("Click a company name to filter the dashboard.")
         leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
