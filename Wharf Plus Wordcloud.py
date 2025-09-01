@@ -1,3 +1,24 @@
+def clean_text(text):
+    if not isinstance(text, str): return ""
+
+    # Fix common encoding errors for punctuation BEFORE any other cleaning
+    text = text.replace('â€™', "'")  # Fixes apostrophes and single quotes
+    text = text.replace('â€œ', '"')  # Fixes opening double quotes
+    text = text.replace('â€', '"')  # Fixes closing double quotes
+    
+    text = re.sub(r'wharf plus', 'WharfPlus', text, flags=re.IGNORECASE)
+    text = text.lower()
+    text = re.sub(r'[^a-z\s]', '', text) # Remove any remaining special characters
+    words = text.split()
+    clean_words = [word for word in words if word not in STOPWORDS and len(word) > 2]
+    return " ".join(clean_words)
+```This new version is cleaner and explicitly handles the most common encoding errors you'll encounter.
+
+### The Complete, Updated Script (For easy copy-paste)
+
+To make it foolproof, here is the entire final script with the `clean_text` function updated. You can replace the whole content of your `Wharf Plus Wordcloud.py` file with this.
+
+```python
 import streamlit as st
 import pandas as pd
 from wordcloud import WordCloud
@@ -73,8 +94,16 @@ SECTOR_MAPPING = {
 
 def clean_text(text):
     if not isinstance(text, str): return ""
+
+    # Fix common encoding errors for punctuation BEFORE any other cleaning
+    text = text.replace('â€™', "'")  # Fixes apostrophes and single quotes
+    text = text.replace('â€œ', '"')  # Fixes opening double quotes
+    text = text.replace('â€', '"')  # Fixes closing double quotes
+    
+    # This is the original cleaning logic, which should now run on the corrected text
     text = re.sub(r'wharf plus', 'WharfPlus', text, flags=re.IGNORECASE)
-    text = text.lower(); text = text.replace('â€™', "'"); text = re.sub(r'[^a-z\s]', '', text)
+    text = text.lower()
+    text = re.sub(r'[^a-z\s]', '', text) # Remove any remaining special characters
     words = text.split()
     clean_words = [word for word in words if word not in STOPWORDS and len(word) > 2]
     return " ".join(clean_words)
@@ -94,6 +123,9 @@ if check_password():
     if uploaded_file:
         try:
             df = pd.read_excel(uploaded_file, na_values=['None'])
+            # We apply the cleaning to the raw response text before displaying it
+            df['display_response'] = df['Response'].str.replace('â€™', "'").str.replace('â€œ', '"').str.replace('â€', '"')
+            
             st.sidebar.header("Filters")
             
             if 'Response' in df.columns and 'Company' in df.columns:
@@ -129,7 +161,8 @@ if check_password():
                     else: st.warning("No text available to generate a word cloud for the selected filter.")
                     
                     with st.expander(f"View the {len(filtered_df)} Raw Response(s)"):
-                        display_df = filtered_df[['Response', 'Company']].rename(columns={'Response': 'Original Response', 'Company': 'Company Name'})
+                        # Use the new 'display_response' column here for a clean view
+                        display_df = filtered_df[['display_response', 'Company']].rename(columns={'display_response': 'Original Response', 'Company': 'Company Name'})
                         st.dataframe(display_df, hide_index=True, use_container_width=True)
                 else: st.warning("No responses found for the selected filters.")
             else: st.error("The uploaded Excel file must contain 'Response' and 'Company' columns.")
