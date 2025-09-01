@@ -79,7 +79,7 @@ def generate_wordcloud_image(text):
 # --- STREAMLIT APPLICATION ---
 if check_password():
     st.set_page_config(layout="wide")
-    st.title("Interactive Response Word Cloud Generator")
+    st.title("Wharf Plus Word Cloud Generator")
     uploaded_file = st.file_uploader("Upload your Excel file to begin", type=["xlsx"])
 
     if uploaded_file:
@@ -152,3 +152,4 @@ if check_password():
                 st.dataframe(display_df, hide_index=True, use_container_width=True)
         else:
             st.warning("No responses found for the selected filters.")
+
