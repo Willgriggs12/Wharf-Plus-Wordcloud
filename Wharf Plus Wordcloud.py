@@ -12,13 +12,8 @@ def clean_text(text):
     words = text.split()
     clean_words = [word for word in words if word not in STOPWORDS and len(word) > 2]
     return " ".join(clean_words)
-```This new version is cleaner and explicitly handles the most common encoding errors you'll encounter.
 
-### The Complete, Updated Script (For easy copy-paste)
-
-To make it foolproof, here is the entire final script with the `clean_text` function updated. You can replace the whole content of your `Wharf Plus Wordcloud.py` file with this.
-
-```python
+python
 import streamlit as st
 import pandas as pd
 from wordcloud import WordCloud
@@ -167,3 +162,4 @@ if check_password():
                 else: st.warning("No responses found for the selected filters.")
             else: st.error("The uploaded Excel file must contain 'Response' and 'Company' columns.")
         except Exception as e: st.error(f"An error occurred while processing the file: {e}")
+
