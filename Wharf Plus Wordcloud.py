@@ -8,29 +8,18 @@ import numpy as np
 # --- 0. PASSWORD PROTECTION FUNCTION ---
 def check_password():
     """Returns `True` if the user has the correct password."""
-
     def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
+        if st.session_state.get("password") == st.secrets.get("password"):
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # don't store password
+            del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
-    if "password_correct" not in st.session_state:
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
+    if not st.session_state.get("password_correct", False):
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
         st.info("Please enter the password to access the dashboard.")
         return False
-    elif not st.session_state["password_correct"]:
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        return True
+    return True
 
 # --- 1. SETUP AND CONFIGURATION ---
 STOPWORDS = [
@@ -73,14 +62,10 @@ SECTOR_MAPPING = {
 
 def clean_text(text):
     if not isinstance(text, str): return ""
-    # Fix common encoding errors for punctuation BEFORE any other cleaning
-    text = text.replace('â€™', "'")  # Fixes apostrophes and single quotes
-    text = text.replace('â€œ', '"')  # Fixes opening double quotes
-    text = text.replace('â€', '"')  # Fixes closing double quotes
-    # This is the original cleaning logic, which should now run on the corrected text
+    text = text.replace('â€™', "'").replace('â€œ', '"').replace('â€', '"')
     text = re.sub(r'wharf plus', 'WharfPlus', text, flags=re.IGNORECASE)
     text = text.lower()
-    text = re.sub(r'[^a-z\s]', '', text) # Remove any remaining special characters
+    text = re.sub(r'[^a-z\s]', '', text)
     words = text.split()
     clean_words = [word for word in words if word not in STOPWORDS and len(word) > 2]
     return " ".join(clean_words)
@@ -98,48 +83,72 @@ if check_password():
     uploaded_file = st.file_uploader("Upload your Excel file to begin", type=["xlsx"])
 
     if uploaded_file:
-        try:
-            df = pd.read_excel(uploaded_file, na_values=['None'])
-            # We apply the cleaning to the raw response text before displaying it
-            df['display_response'] = df['Response'].str.replace('â€™', "'").str.replace('â€œ', '"').str.replace('â€', '"')
-            st.sidebar.header("Filters")
+        df = pd.read_excel(uploaded_file, na_values=['None'])
+        df['display_response'] = df['Response'].astype(str).str.replace('â€™', "'").str.replace('â€œ', '"').str.replace('â€', '"')
+        df['Sector'] = df['Company'].map(SECTOR_MAPPING).fillna('Other')
+        df['cleaned_response'] = df['Response'].apply(clean_text)
+
+        st.sidebar.header("Filters")
+
+        # --- Sidebar: Interactive Leaderboard ---
+        st.sidebar.subheader("Response Leaderboard")
+        st.sidebar.caption("Click a company name to filter the dashboard.")
+        leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
+        if not leaderboard_df.empty:
+            company_counts = leaderboard_df['Company'].value_counts().reset_index()
+            company_counts.columns = ['Company', 'Responses']
             
-            if 'Response' in df.columns and 'Company' in df.columns:
-                df['Sector'] = df['Company'].map(SECTOR_MAPPING).fillna('Other')
-                df['cleaned_response'] = df['Response'].apply(clean_text)
-
-                st.sidebar.subheader("Response Leaderboard")
-                leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
-                if not leaderboard_df.empty:
-                    company_counts = leaderboard_df['Company'].value_counts().reset_index()
-                    company_counts.columns = ['Company', 'Responses']
-                    st.sidebar.dataframe(company_counts, hide_index=True, use_container_width=True)
+            # Create clickable leaderboard items
+            for row in company_counts.itertuples():
+                cols = st.sidebar.columns([3, 1])
+                button_clicked = cols[0].button(row.Company, key=f"btn_{row.Company}")
+                cols[1].write(f"**{row.Responses}**")
                 
-                sector_list = ['All Sectors'] + sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
-                selected_sector = st.sidebar.selectbox("Filter by Sector:", sector_list)
+                if button_clicked:
+                    # When a button is clicked, set the state for the main filters
+                    st.session_state.sector_filter = [df.loc[df['Company'] == row.Company, 'Sector'].iloc[0]]
+                    st.session_state.company_filter = [row.Company]
+                    st.rerun() # Rerun the script to apply the filter immediately
 
-                if selected_sector == 'All Sectors': company_list = ['All Companies'] + sorted(df['Company'].dropna().unique().tolist())
-                else: company_list = ['All Companies'] + sorted(df[df['Sector'] == selected_sector]['Company'].dropna().unique().tolist())
-                selected_company = st.sidebar.selectbox(f"Filter by Company:", company_list)
+        # --- Sidebar: Multi-Select Filters ---
+        sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
+        selected_sectors = st.multiselect("Filter by Sector:", sector_list, key='sector_filter')
 
-                filtered_df = df.copy(); title = "Word Cloud for "
-                if selected_sector != 'All Sectors':
-                    filtered_df = filtered_df[filtered_df['Sector'] == selected_sector]; title += f"'{selected_sector}' Sector"
-                    if selected_company != 'All Companies': filtered_df = filtered_df[filtered_df['Company'] == selected_company]; title = f"Word Cloud for '{selected_company}'"
-                elif selected_company != 'All Companies': filtered_df = filtered_df[filtered_df['Company'] == selected_company]; title = f"Word Cloud for '{selected_company}'"
-                else: title += "All Responses"
-                st.header(title)
-                
-                if not filtered_df.empty:
-                    full_text = " ".join(response for response in filtered_df['cleaned_response'].dropna())
-                    wordcloud_fig = generate_wordcloud_image(full_text)
-                    if wordcloud_fig: st.pyplot(wordcloud_fig)
-                    else: st.warning("No text available to generate a word cloud for the selected filter.")
-                    
-                    with st.expander(f"View the {len(filtered_df)} Raw Response(s)"):
-                        # Use the new 'display_response' column here for a clean view
-                        display_df = filtered_df[['display_response', 'Company']].rename(columns={'display_response': 'Original Response', 'Company': 'Company Name'})
-                        st.dataframe(display_df, hide_index=True, use_container_width=True)
-                else: st.warning("No responses found for the selected filters.")
-            else: st.error("The uploaded Excel file must contain 'Response' and 'Company' columns.")
-        except Exception as e: st.error(f"An error occurred while processing the file: {e}")
+        if selected_sectors:
+            company_df = df[df['Sector'].isin(selected_sectors)]
+        else:
+            company_df = df # If no sector selected, show all companies
+        
+        company_list = sorted(company_df['Company'].dropna().unique().tolist())
+        selected_companies = st.multiselect("Filter by Company:", company_list, key='company_filter')
+
+        # --- Filtering Logic ---
+        filtered_df = df.copy()
+        title_parts = []
+        if selected_sectors:
+            filtered_df = filtered_df[filtered_df['Sector'].isin(selected_sectors)]
+            title_parts.append(f"Sector(s): {', '.join(selected_sectors)}")
+        
+        if selected_companies:
+            filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
+            title_parts.append(f"Company(s): {', '.join(selected_companies)}")
+
+        # --- Title Generation ---
+        if not title_parts:
+            title = "Word Cloud for All Responses"
+        else:
+            title = "Word Cloud for " + " & ".join(title_parts)
+        st.header(title)
+        
+        # --- Display Word Cloud and Data ---
+        if not filtered_df.empty:
+            full_text = " ".join(response for response in filtered_df['cleaned_response'].dropna())
+            wordcloud_fig = generate_wordcloud_image(full_text)
+            if wordcloud_fig: st.pyplot(wordcloud_fig)
+            else: st.warning("No text available to generate a word cloud for the selected filter.")
+            
+            with st.expander(f"View the {len(filtered_df)} Raw Response(s)"):
+                display_df = filtered_df[['display_response', 'Company']].rename(columns={'display_response': 'Original Response', 'Company': 'Company Name'})
+                st.dataframe(display_df, hide_index=True, use_container_width=True)
+        else:
+            st.warning("No responses found for the selected filters.")
