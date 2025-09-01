@@ -13,7 +13,7 @@ def clean_text(text):
     clean_words = [word for word in words if word not in STOPWORDS and len(word) > 2]
     return " ".join(clean_words)
 
-python
+'''python
 import streamlit as st
 import pandas as pd
 from wordcloud import WordCloud
@@ -162,4 +162,5 @@ if check_password():
                 else: st.warning("No responses found for the selected filters.")
             else: st.error("The uploaded Excel file must contain 'Response' and 'Company' columns.")
         except Exception as e: st.error(f"An error occurred while processing the file: {e}")
+
 
