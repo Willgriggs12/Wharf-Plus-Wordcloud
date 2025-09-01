@@ -37,16 +37,10 @@ SECTOR_MAPPING = {
     'Waitrose & Partners': 'Other', 'Canary Wharf Group': 'Other', 'Westferry Circus Property Ltd': 'Other', 'Paul Smith': 'Other', 'Ocean Network Express': 'Other', 'Blacklock': 'Other', 'Third Space': 'Other', 'Visitor': 'Other', '1. Company not listed': 'Other', 'None': 'Other', None: 'Other', np.nan: 'Other'
 }
 
-# --- New: Color mapping for sectors ---
 SECTOR_COLORS = {
-    'Banking & Finance': '#7d3c98', # Purple
-    'Manufacturing, Industrial & Energy': '#2e86c1', # Blue
-    'TMT': '#16a085', # Teal
-    'Business Services': '#f1c40f', # Yellow
-    'Professional': '#e67e22', # Orange
-    'Public Sector / Regulatory Body / Charity': '#27ae60', # Green
-    'Life Sciences & Healthcare': '#c0392b', # Red
-    'Other': '#7f8c8d' # Grey
+    'Banking & Finance': '#7d3c98', 'Manufacturing, Industrial & Energy': '#2e86c1', 'TMT': '#16a085',
+    'Business Services': '#f1c40f', 'Professional': '#e67e22', 'Public Sector / Regulatory Body / Charity': '#27ae60',
+    'Life Sciences & Healthcare': '#c0392b', 'Other': '#7f8c8d'
 }
 
 def clean_text(text):
@@ -61,60 +55,47 @@ def clean_text(text):
 
 def generate_wordcloud_image(text):
     if not text or text.isspace(): return None
-    wordcloud = WordCloud(width=1600, height=800, background_color='white', colormap='viridis', collocations=False, stopwords=STOPWORDS).generate(text)
-    fig, ax = plt.subplots(figsize=(12, 6)); ax.imshow(wordcloud, interpolation='bilinear'); ax.axis("off")
+    wordcloud = WordCloud(width=1600, height=800, background_color='#FFFFFF', colormap='viridis', collocations=False, stopwords=STOPWORDS).generate(text)
+    fig, ax = plt.subplots(figsize=(12, 6)); ax.imshow(wordcloud, interpolation='bilinear'); ax.axis("off"); fig.patch.set_facecolor('#FFFFFF')
     return fig
-
-# --- New: Function to load custom CSS for professional UI ---
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # --- STREAMLIT APPLICATION ---
 if check_password():
     st.set_page_config(layout="wide", page_title="Response Dashboard")
-    
-    # --- New: Apply Custom CSS ---
-    # This injects the custom styles for the sidebar and buttons.
+
+    # --- Custom CSS for the Professional UI ---
     st.markdown("""
     <style>
-        /* Main sidebar styling */
+        /* Main App Background */
+        .main {
+            background-color: #FFFFFF;
+        }
+        /* Sidebar Styling */
         [data-testid="stSidebar"] {
-            background-color: #f8f9fa; /* Light grey background */
-            border-right: 1px solid #e0e0e0;
+            background-color: #F8F9FA;
+            border-right: 1px solid #EAECEE;
         }
-
-        /* Sidebar header */
-        [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-            color: #333; /* Darker text for headers */
+        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+            color: #17202A;
         }
-        
-        /* Custom button styling for the leaderboard */
+        /* Custom Button for Leaderboard */
         .stButton>button {
-            background-color: #ffffff; /* White background */
-            color: #4f4f4f; /* Dark grey text */
-            border: 1px solid #dcdcdc; /* Light grey border */
-            border-radius: 10px; /* Rounded corners */
-            padding: 8px 12px;
-            width: 100%;
-            text-align: left;
-            transition: all 0.2s ease-in-out;
+            background-color: #FFFFFF; border: 1px solid #D5D8DC; border-radius: 8px;
+            color: #566573; text-align: left; width: 100%; transition: all 0.2s;
         }
         .stButton>button:hover {
-            background-color: #f0f2f6; /* Light hover effect */
-            border-color: #a0a0a0;
+            border-color: #7d3c98; color: #7d3c98; box-shadow: 0px 2px 5px rgba(0,0,0,0.05);
         }
-        .stButton>button:focus {
-            box-shadow: 0 0 0 2px #e0e0e0; /* Focus ring */
-            outline: none;
-        }
-        
-        /* Styling for the leaderboard count */
+        /* Leaderboard Count Style */
         .leaderboard-count {
-            font-weight: bold;
-            text-align: right;
-            padding-top: 10px;
-            color: #555;
+            font-weight: bold; text-align: right; padding-top: 8px; color: #2C3E50;
+        }
+        /* Color Legend Style */
+        .legend-item {
+            display: flex; align-items: center; margin-bottom: 5px;
+        }
+        .legend-color {
+            display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -128,62 +109,55 @@ if check_password():
         df['Sector'] = df['Company'].map(SECTOR_MAPPING).fillna('Other')
         df['cleaned_response'] = df['Response'].apply(clean_text)
 
-        st.sidebar.title("Filters")
+        # --- Sidebar Layout ---
+        st.sidebar.title("Dashboard Controls")
         st.sidebar.markdown("---")
 
-        # --- Sidebar: Interactive Leaderboard with new UI ---
+        # --- Section 1: Analysis Tools ---
+        st.sidebar.subheader("Analysis Tools")
+        sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
+        selected_sectors = st.sidebar.multiselect("Filter by Sector:", sector_list, key='sector_filter')
+
+        if selected_sectors: company_df = df[df['Sector'].isin(selected_sectors)]
+        else: company_df = df
+        
+        company_list = sorted(company_df['Company'].dropna().unique().tolist())
+        selected_companies = st.sidebar.multiselect("Filter by Company:", company_list, key='company_filter')
+        st.sidebar.markdown("---")
+
+        # --- Section 2: Sector Legend ---
+        st.sidebar.subheader("Sector Legend")
+        for sector, color in SECTOR_COLORS.items():
+            st.sidebar.markdown(f'<div class="legend-item"><div class="legend-color" style="background-color:{color};"></div>{sector}</div>', unsafe_allow_html=True)
+        st.sidebar.markdown("---")
+
+        # --- Section 3: Response Leaderboard ---
         st.sidebar.subheader("Response Leaderboard")
         st.sidebar.caption("Click a company name to filter.")
         leaderboard_df = df[~df['Company'].isin(['1. Company not listed', 'Visitor', None, np.nan])]
         if not leaderboard_df.empty:
             company_counts = leaderboard_df['Company'].value_counts().reset_index()
             company_counts.columns = ['Company', 'Responses']
-            
             for row in company_counts.itertuples():
                 cols = st.sidebar.columns([4, 1])
-                button_clicked = cols[0].button(row.Company, key=f"btn_{row.Company}")
-                cols[1].markdown(f"<div class='leaderboard-count'>{row.Responses}</div>", unsafe_allow_html=True)
-                
-                if button_clicked:
+                if cols[0].button(row.Company, key=f"btn_{row.Company}"):
                     st.session_state.sector_filter = [df.loc[df['Company'] == row.Company, 'Sector'].iloc[0]]
                     st.session_state.company_filter = [row.Company]
                     st.rerun()
+                cols[1].markdown(f"<div class='leaderboard-count'>{row.Responses}</div>", unsafe_allow_html=True)
 
-        st.sidebar.markdown("---")
-        
-        # --- Sidebar: Multi-Select Filters with Colors ---
-        sector_list = sorted([s for s in df['Sector'].unique() if s != 'Other']) + ['Other']
-        
-        # New: Function to format sector names with colored circles
-        def format_sector_with_color(sector_name):
-            color = SECTOR_COLORS.get(sector_name, "#ffffff")
-            return f'<div><span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: {color}; margin-right: 8px;"></span>{sector_name}</div>'
-
-        selected_sectors = st.sidebar.multiselect("Filter by Sector:", sector_list, key='sector_filter', format_func=lambda x: SECTOR_COLORS.get(x, "") + " " + x)
-        
-        if selected_sectors:
-            company_df = df[df['Sector'].isin(selected_sectors)]
-        else:
-            company_df = df
-        
-        company_list = sorted(company_df['Company'].dropna().unique().tolist())
-        selected_companies = st.sidebar.multiselect("Filter by Company:", company_list, key='company_filter')
-
-        # --- Main Panel: Filtering Logic and Display ---
+        # --- Main Panel Logic ---
         filtered_df = df.copy()
         title_parts = []
         if selected_sectors:
             filtered_df = filtered_df[filtered_df['Sector'].isin(selected_sectors)]
             title_parts.append(f"Sector(s): {', '.join(selected_sectors)}")
-        
         if selected_companies:
             filtered_df = filtered_df[filtered_df['Company'].isin(selected_companies)]
             title_parts.append(f"Company(s): {', '.join(selected_companies)}")
 
-        if not title_parts:
-            title = "Word Cloud for All Responses"
-        else:
-            title = "Word Cloud for " + " & ".join(title_parts)
+        if not title_parts: title = "Word Cloud for All Responses"
+        else: title = "Word Cloud for " + " & ".join(title_parts)
         st.header(title)
         
         if not filtered_df.empty:
